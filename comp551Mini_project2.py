@@ -42,7 +42,8 @@ def checkAdjFreq (directoryString):   # A function that takes in a review (.txt 
 posReviewsFreqDict = checkAdjFreq(posDirectory)
 negReviewsFreqDict = checkAdjFreq(negDirectory)
 
-
+numPosReviews = 12500           # Constant
+numNegReviews = 12500           # Constant
 
 
 
