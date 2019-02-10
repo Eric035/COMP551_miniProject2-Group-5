@@ -27,7 +27,7 @@ def checkAdjFreq (directoryString):   # A function that takes in a review (.txt 
     directory = os.listdir(directoryString)
     directoryPath = os.path.normpath(directoryString)
     for file in directory:
-        filepath = os.path.join(directoryPath, os.path.normpath(file))       # Filepath = directoryPath + filename
+        filepath = os.path.join(directoryPath, os.path.normpath(file))       # filepath = directoryPath + filename
         content = open(filepath, 'r', encoding='latin-1')
         content = content.read()
         wordList = (content.lower()).split()
@@ -35,8 +35,6 @@ def checkAdjFreq (directoryString):   # A function that takes in a review (.txt 
         for word in wordList:
             if word in freqAdjDict:
                 freqAdjDict[word] += 1
-
-    print (freqAdjDict)
     return freqAdjDict
 
 posReviewsFreqDict = checkAdjFreq(posDirectory)
@@ -44,6 +42,10 @@ negReviewsFreqDict = checkAdjFreq(negDirectory)
 
 numPosReviews = 12500           # Constant
 numNegReviews = 12500           # Constant
+
+# TODO: Remove all the punction marks. Count number of exclaimation and question marks.
+
+
 
 
 
