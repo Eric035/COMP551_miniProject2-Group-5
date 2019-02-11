@@ -18,6 +18,8 @@ negAdjString = "Absurd,Arrogant,Boring,bad,intolerant,crazy,Miserly,Patronizing,
 AdjString = posAdjString + negAdjString
 
 AdjList = lowerCaseAndSplit(AdjString)          # A list of adjectives
+punctuation = str.maketrans("!,?" , 3 * " ")    # Use this list for stripping punctuations off each review
+
 
 def checkAdjFreq (directoryString):   # A function that takes in a review (.txt file), count the frequencies of each adjective that are in our AdjList appear in that particular review.
     freqAdjDict = {}
@@ -30,6 +32,7 @@ def checkAdjFreq (directoryString):   # A function that takes in a review (.txt 
         filepath = os.path.join(directoryPath, os.path.normpath(file))       # filepath = directoryPath + filename
         content = open(filepath, 'r', encoding='latin-1')
         content = content.read()
+        content.translate(punctuation)          # To remove "," , "!" and "?" from each review.
         wordList = (content.lower()).split()
 
         for word in wordList:
@@ -40,6 +43,10 @@ def checkAdjFreq (directoryString):   # A function that takes in a review (.txt 
 posReviewsFreqDict = checkAdjFreq(posDirectory)
 negReviewsFreqDict = checkAdjFreq(negDirectory)
 
+print (posReviewsFreqDict)
+print (negReviewsFreqDict)
+
+#----------------------------------------------------------------------------------------------------------#
 numPosReviews = 12500           # Constant
 numNegReviews = 12500           # Constant
 
