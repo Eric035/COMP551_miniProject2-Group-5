@@ -7,15 +7,19 @@
 import os, sys
 import numpy as np
 import pickle as pk
+import matplotlib.pyplot as pp
+
+
 
 posDirectory = "/Users/Donovan/Desktop/proj2_materials/Train_Set/pos"
 negDirectory = "/Users/Donovan/Desktop/proj2_materials/Train_Set/neg"
+testDirectory = "/Users/Donovan/Desktop/proj2_materials/Test_Set"
 
 def lowerCaseAndSplit (words):
     wList = (words.lower()).split(",")
     return wList
 
-posAdjString = "amazing,alluring,adventurous,amusing,awesome,ambitious,beautiful,bold,brainy,breathtaking,blazing,brazen,cool,cheerful,charming,creative,clever,daring,delightful,dazzling,energetic,elegant,excellent,exceptional,emotional,exuberant,fascinating,fantastic,funny,genius,glorious,great,genuine,happy,honest,helpful,heavenly,hilarious,humorous,hearty,Incredible,inspirational,inspiring,impeccable,ingenious,impressive,innovative,insightful,intense,impartial,imaginative,independent,intuitive,inventive,intellectual,intelligent,Jolly,joyful,jubilant,jovial,joyous,Keen,kind,kindhearted,lively,lovable,lovely,marvellous,majestic,memorable,modest,nice,positive,passionate,perfect,phenomenal,quirky,ravishing,reserved,romantic,sweet,stunning,smart,sensational,success,thrilling,tenacious,talented,upbeat,uplifting,vigorous,valiant,versatile,witty,wise,wonderful,welcoming,warmhearted,inventive,witty,fun,zesty,!,?,"
+posAdjString = "amazing,alluring,adventurous,amusing,awesome,ambitious,beautiful,bold,brainy,breathtaking,blazing,brazen,cool,cheerful,charming,creative,clever,daring,delightful,dazzling,energetic,elegant,excellent,exceptional,emotional,exuberant,fascinating,fantastic,funny,genius,glorious,great,genuine,happy,honest,helpful,heavenly,hilarious,humorous,hearty,Incredible,inspirational,inspiring,impeccable,ingenious,impressive,innovative,insightful,intense,impartial,imaginative,fun,zesty,!,?,"
 negAdjString = "absurd,arrogant,boring,bad,intolerant,crazy,miserly,patronizing,vulgar,crude,obnoxious,offensive,violent,cryptic,failure,fail,cringy,atrocious,awful,cheap,crummy,dreadful,lousy,noisy,poor,poorly,unacceptable,garbage,gross,horrible,inaccurate,inferior,obnoxious,synthetic,careless,cheesy,crappy,abominable,faulty,godawful,substandard,despicable,horrendous,terrible,attempt,upsetting,not,no,vile,abominable,appalling,cruel,disgusting,dreadful,eerie,grim,hideous,disastrous,disaster,horrid,horrendous,unpleasant,defective,unsatisfied"
 AdjString = posAdjString + negAdjString
 
@@ -102,8 +106,8 @@ def noName(directoryString):
         sum_Class_0 = 0
 
         for word in wordIsPresent:
-            sum_Class_1 += posReviewsFreqDict[word] / (posReviewsFreqDict[word] + negReviewsFreqDict[word])
-            sum_Class_0 += negReviewsFreqDict[word] / (posReviewsFreqDict[word] + negReviewsFreqDict[word])
+            sum_Class_1 += posReviewsFreqDict[word] / (posReviewsFreqDict[word] + negReviewsFreqDict[word] + 1)
+            sum_Class_0 += negReviewsFreqDict[word] / (posReviewsFreqDict[word] + negReviewsFreqDict[word] + 1)
 
         if sum_Class_1 > sum_Class_0:
             predicted_values[review] = 1
@@ -122,21 +126,28 @@ def noName(directoryString):
     print('number of negative reviews = ', numOfNeg)
 
     if numOfPos > numOfNeg:
-        accuracy = float(numOfPos/float(12500))
-        print('That gives us an accuracy of: ', accuracy)
+        accuracy = float(numOfPos/float(12501)) * 100
+        print('That gives us an accuracy of: ', accuracy, '%')
     else:
-        accuracy = float(numOfNeg/float(12500))
-        print('That gives us an accuracy of: ', accuracy)
+        accuracy = float(numOfNeg/float(12501)) * 100
+        print('That gives us an accuracy of: ', accuracy, '%')
 
     return predicted_values
 
+
+print('Training Set')
 print('We will now test the algorithm with all 12500 positive reviews:')
 print(noName(posDirectory))
-
+print('')
 print('We will now test the algorithm with all 12500 negative reviews:')
 print(noName(negDirectory))
+print('')
 
 
-print('It seems our algorithm is biased towards positive reviews, this is because we have more positive adjective features. \n To solve this we will remove some positive adjective features to match the number of negative adjective features. \n We will select which ones to remove by removing the adjectives with the least difference frequencies between positive and negative reviews')
 
 
+print('Test Set')
+print(noName(testDirectory))
+
+#print('It seems our algorithm is biased towards positive reviews, this is because we have more positive adjective features.\nTo solve this we will remove some positive adjective features to match the number of negative adjective features.\nWe will select which ones to remove by removing the adjectives with the least difference frequencies between positive and negative reviews')
+#print('Seemed to work well')
