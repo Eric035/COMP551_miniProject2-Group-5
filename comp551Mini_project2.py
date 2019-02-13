@@ -7,9 +7,9 @@
 import os, sys
 import numpy as np
 import pickle as pk
+import pandas as pd
 import matplotlib.pyplot as pp
-
-
+import csv
 
 posDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/pos"
 negDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/neg"
@@ -19,14 +19,14 @@ def lowerCaseAndSplit (words):
     wList = (words.lower()).split(",")
     return wList
 
-posAdjString = "amazing,alluring,adventurous,amusing,awesome,ambitious,beautiful,bold,brainy,breathtaking,blazing,brazen,cool,cheerful,charming,creative,clever,daring,delightful,dazzling,energetic,elegant,excellent,exceptional,emotional,exuberant,fascinating,fantastic,funny,genius,glorious,great,genuine,happy,honest,helpful,heavenly,hilarious,humorous,hearty,Incredible,inspirational,inspiring,impeccable,ingenious,impressive,innovative,insightful,intense,impartial,imaginative,fun,zesty,!,?,"
-negAdjString = "absurd,arrogant,boring,bad,intolerant,crazy,miserly,patronizing,vulgar,crude,obnoxious,offensive,violent,cryptic,failure,fail,cringy,atrocious,awful,cheap,crummy,dreadful,lousy,noisy,poor,poorly,unacceptable,garbage,gross,horrible,inaccurate,inferior,obnoxious,synthetic,careless,cheesy,crappy,abominable,faulty,godawful,substandard,despicable,horrendous,terrible,attempt,upsetting,not,no,vile,abominable,appalling,cruel,disgusting,dreadful,eerie,grim,hideous,disastrous,disaster,horrid,horrendous,unpleasant,defective,unsatisfied"
+posAdjString = "amazing,alluring,adventurous,amusing,awesome,ambitious,beautiful,bold,brainy,breathtaking,blazing,brazen,cool,cheerful,charming,creative,clever,daring,delightful,dazzling,energetic,elegant,excellent,exceptional,emotional,exuberant,fascinating,fantastic,funny,genius,glorious,great,genuine,happy,honest,helpful,heavenly,hilarious,humorous,hearty,Incredible,inspirational,inspiring,impeccable,ingenious,impressive,innovative,insightful,intense,impartial,imaginative,phenomenal,fun,zesty,!,?,"
+negAdjString = "absurd,arrogant,boring,bad,intolerant,crazy,miserly,patronizing,vulgar,crude,obnoxious,offensive,violent,cryptic,failure,fail,cringy,atrocious,awful,cheap,crummy,dreadful,lousy,noisy,poor,poorly,unacceptable,garbage,gross,horrible,inaccurate,inferior,obnoxious,synthetic,careless,cheesy,crappy,abominable,faulty,godawful,substandard,despicable,horrendous,terrible,attempt,upsetting,not,no,vile,abominable,appalling,cruel,disgusting,dreadful,eerie,grim,hideous,disastrous,disaster,horrid,horrendous,unpleasant,defective,miserable,failed,unsatisfied"
 AdjString = posAdjString + negAdjString
 
 AdjList = lowerCaseAndSplit(AdjString)          # A list of adjectives
 
-predicted_value = np.zeros([12500])
-observed_value = np.zeros([12500])
+predicted_value = np.zeros([12501])
+observed_value = np.zeros([12501])
 
 def checkAdjFreq (directoryString):   # A function that takes in a review (.txt file), count the frequencies of each adjective that are in our AdjList appear in that particular review.
     freqAdjDict = {}
@@ -85,10 +85,9 @@ print('')
 
 # Naive Bayes Algorithm
 
-predicted_values_train = np.zeros([12501])
-predicted_value_test = np.zeros([25001])
-
-def noName(directoryString):
+training_predicted_values = np.zeros([12501])
+test_predicted_values = np.zeros([25001])
+def noName(directoryString, predicted_values):
     wordIsPresent = {}
     directory = os.listdir(directoryString)
     directoryPath = os.path.normpath(directoryString)
@@ -111,15 +110,15 @@ def noName(directoryString):
             sum_Class_0 += negReviewsFreqDict[word] / (posReviewsFreqDict[word] + negReviewsFreqDict[word] + 1)
 
         if sum_Class_1 > sum_Class_0:
-            predicted_values_train[review] = 1
+            predicted_values[review] = 1
         else:
-            predicted_values_train[review] = 0
+            predicted_values[review] = 0
         review += 1
 
     numOfPos = float(0)
     numOfNeg = float(0)
-    for i in range(0,predicted_values_train.size):
-        if predicted_values_train[i] == 1:
+    for i in range(0,predicted_values.size):
+        if predicted_values[i] == 1:
             numOfPos += 1
         else:
             numOfNeg += 1
@@ -133,22 +132,73 @@ def noName(directoryString):
         accuracy = float(numOfNeg/float(12501)) * 100
         print('That gives us an accuracy of: ', accuracy, '%')
 
-    return predicted_values_train
+    return predicted_values
 
 
 print('Training Set')
 print('We will now test the algorithm with all 12501 positive reviews:')
-print(noName(posDirectory))
+print(noName(posDirectory, training_predicted_values))
 print('')
 print('We will now test the algorithm with all 12501 negative reviews:')
-print(noName(negDirectory))
+print(noName(negDirectory, training_predicted_values))
 print('')
 
 
+def noName2(directoryString, predicted_values):
+    wordIsPresent = {}
+    directory = os.listdir(directoryString)
+    directoryPath = os.path.normpath(directoryString)
+    review = 0
+    for file in directory:
+        filepath = os.path.join(directoryPath, os.path.normpath(file))       # Filepath = directoryPath + filename
+        content = open(filepath, 'r', encoding='latin-1')
+        content = content.read()
+        wordList = (content.lower()).split()
 
+        for word in wordList:
+            if word in posReviewsFreqDict:
+                wordIsPresent[word] = 1
 
+        sum_Class_1 = 0
+        sum_Class_0 = 0
+
+        for word in wordIsPresent:
+            sum_Class_1 += posReviewsFreqDict[word] / (posReviewsFreqDict[word] + negReviewsFreqDict[word] + 1)
+            sum_Class_0 += negReviewsFreqDict[word] / (posReviewsFreqDict[word] + negReviewsFreqDict[word] + 1)
+
+        if sum_Class_1 > sum_Class_0:
+            predicted_values[review] = 1
+        else:
+            predicted_values[review] = 0
+        review += 1
+
+    numOfPos = float(0)
+    numOfNeg = float(0)
+    for i in range(0,predicted_values.size):
+        if predicted_values[i] == 1:
+            numOfPos += 1
+        else:
+            numOfNeg += 1
+    print('number of positive reviews = ', numOfPos)
+    print('number of negative reviews = ', numOfNeg)
+
+    return predicted_values
+
+csv_predictedValues = np.zeros((25001,2))
+
+print("")
 print('Test Set')
-print(noName(testDirectory))
+predicted_values = noName2(testDirectory, test_predicted_values)
+
+for i in range(len(csv_predictedValues)):
+    csv_predictedValues[i][0] = i
+    csv_predictedValues[i][1] = predicted_values[i]
+
+dataFrame = pd.DataFrame(csv_predictedValues, columns=["Example", "Predicted Values"])
+print(dataFrame)
+
+dataFrame.to_csv('PredictedValues1.csv', encoding='utf-8', index=False)
+
 
 #print('It seems our algorithm is biased towards positive reviews, this is because we have more positive adjective features.\nTo solve this we will remove some positive adjective features to match the number of negative adjective features.\nWe will select which ones to remove by removing the adjectives with the least difference frequencies between positive and negative reviews')
 #print('Seemed to work well')
