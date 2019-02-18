@@ -31,18 +31,18 @@ def adjStringToDict (adjString):            # Covert a string of adjectives into
 posAdjDict = adjStringToDict(posAdjString)                # A dictionary object that contains all the positive adjectives
 negAdjDict = adjStringToDict(negAdjString)
 
+posReviews = os.listdir(posDirectory)
+negReviews = os.listdir(negDirectory)                       # Files in the directory neg
 numPosReviewsTrainingData = len(os.listdir(posDirectory))
 numNegReviewsTrainingData = len(os.listdir(negDirectory))
 totalNumReviewsInTrainingData = numNegReviewsTrainingData + numPosReviewsTrainingData
-# print(numPosReviewsTrainingData, numNegReviewsTrainingData, totalNumReviewsInTrainingData)
 
 trainingDataDT = np.zeros((totalNumReviewsInTrainingData, 2))       # A numpy matrix to store our result to fit our DT model
                                                                     # Columns: 1) Number of positive adjectives a review has, 2) Number of negative adjectives a review has, 3) Number of swear words a review has
-posReviews = os.listdir(posDirectory)
-negReviews = os.listdir(negDirectory)
 
 posReviewsDirectoryPath = os.path.normpath(posDirectory)
 negReviewsDirectoryPath = os.path.normpath(negDirectory)
+
 
 for file, i in zip(posReviews, range(len(posReviews))):                                 # Loop through each file in the pos directory to organize data for our DT model
     filepath = os.path.join(posReviewsDirectoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
@@ -57,7 +57,6 @@ for file, i in zip(posReviews, range(len(posReviews))):                         
         if w in negAdjDict:
             trainingDataDT[i][1] += 1
 
-
 for file, i in zip(negReviews, range(len(negReviews), totalNumReviewsInTrainingData)):
     filepath = os.path.join(negReviewsDirectoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
     content = open(filepath, 'r', encoding='latin-1')
@@ -70,6 +69,7 @@ for file, i in zip(negReviews, range(len(negReviews), totalNumReviewsInTrainingD
             trainingDataDT[i][0] += 1
         if w in negAdjDict:
             trainingDataDT[i][1] += 1
+
 print("This is the input data for our DT model: ")
 print(trainingDataDT)
 print("#--------------------------------------------------------------------------------------------------------------#")
@@ -81,26 +81,28 @@ print (trainTarget)
 print("#--------------------------------------------------------------------------------------------------------------#")
 model = tree.DecisionTreeClassifier()
 model.fit(trainingDataDT, trainTarget)
+
 #--------------------------------------------------------------------------------------------------------------#
 # For our test data
 print("Now we are going to extract the features from our test data set, and prepare it for our DT model: ")
 testSetDirectoryPath = os.path.normpath(testDirectory)
 filesInTest = os.listdir(testDirectory)
+
 numReviewsTestData = len(os.listdir(testDirectory))
 testDataDT = np.zeros((numReviewsTestData, 2))
 
-for file, i in zip(filesInTest, range(numReviewsTestData)):
+for file in filesInTest:
     filepath = os.path.join(testSetDirectoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
     content = open(filepath, 'r', encoding='latin-1')
     content = content.read()
     reviewLen = len(content)  # Count the length of that particular review, for extra feature
     wordList = (content.lower()).split()
-
+    index = int(file[:-4])              # Take away the '.txt' from file (string), we will have our index for our matrix
     for w in wordList:
         if w in posAdjDict:
-            testDataDT[i][0] += 1
+            testDataDT[index][0] += 1
         if w in negAdjDict:
-            testDataDT[i][1] += 1
+            testDataDT[index][1] += 1
 
 print("This is the input data after pre-processing for our test set: ")
 print(testDataDT)
