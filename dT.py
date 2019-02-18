@@ -35,7 +35,7 @@ posReviews = os.listdir(posDirectory)
 negReviews = os.listdir(negDirectory)                       # Files in the directory neg
 numPosReviewsTrainingData = len(os.listdir(posDirectory))
 numNegReviewsTrainingData = len(os.listdir(negDirectory))
-totalNumReviewsInTrainingData = numNegReviewsTrainingData + numPosReviewsTrainingData
+totalNumReviewsInTrainingData = (numNegReviewsTrainingData + numPosReviewsTrainingData)
 
 trainingDataDT = np.zeros((totalNumReviewsInTrainingData, 2))       # A numpy matrix to store our result to fit our DT model
                                                                     # Columns: 1) Number of positive adjectives a review has, 2) Number of negative adjectives a review has, 3) Number of swear words a review has
@@ -43,32 +43,39 @@ trainingDataDT = np.zeros((totalNumReviewsInTrainingData, 2))       # A numpy ma
 posReviewsDirectoryPath = os.path.normpath(posDirectory)
 negReviewsDirectoryPath = os.path.normpath(negDirectory)
 
-
-for file, i in zip(posReviews, range(len(posReviews))):                                 # Loop through each file in the pos directory to organize data for our DT model
+for file in posReviews:                                 # Loop through each file in the pos directory to organize data for our DT model
     filepath = os.path.join(posReviewsDirectoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
     content = open(filepath, 'r', encoding='latin-1')
     content = content.read()
     reviewLen = len(content)            # Count the length of that particular review
     wordList = (content.lower()).split()
+    try:
+        underScoreIndex = file.index('_')           # Take the part of the string before the under score symbol, we will have the file's order
+        fileOrder = int(file[:underScoreIndex])
+        for w in wordList:
+            if w in posAdjDict:
+                trainingDataDT[fileOrder][0] += 1
+            if w in negAdjDict:
+                trainingDataDT[fileOrder][1] += 1
+    except ValueError:                              # There is a .DS_store file we have catch in order to prevent our program from crashing
+        continue
 
-    for w in wordList:
-        if w in posAdjDict:
-            trainingDataDT[i][0] += 1
-        if w in negAdjDict:
-            trainingDataDT[i][1] += 1
-
-for file, i in zip(negReviews, range(len(negReviews), totalNumReviewsInTrainingData)):
+for file in negReviews:
     filepath = os.path.join(negReviewsDirectoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
     content = open(filepath, 'r', encoding='latin-1')
     content = content.read()
     reviewLen = len(content)            # Count the length of that particular review
     wordList = (content.lower()).split()
-
-    for w in wordList:
-        if w in posAdjDict:
-            trainingDataDT[i][0] += 1
-        if w in negAdjDict:
-            trainingDataDT[i][1] += 1
+    try:
+        underScoreIndex = file.index('_')
+        fileOrder = int(file[:underScoreIndex]) + int(len(posReviews))  # File number is obtained by taking the string the under score.
+        for w in wordList:
+            if w in posAdjDict:
+                trainingDataDT[fileOrder][0] += 1
+            if w in negAdjDict:
+                trainingDataDT[fileOrder][1] += 1
+    except ValueError:
+        continue
 
 print("This is the input data for our DT model: ")
 print(trainingDataDT)
@@ -81,6 +88,8 @@ print (trainTarget)
 print("#--------------------------------------------------------------------------------------------------------------#")
 model = tree.DecisionTreeClassifier()
 model.fit(trainingDataDT, trainTarget)
+# DF = pd.DataFrame(trainingDataDT, columns=['Positive Adj', 'Negative Adj'])
+# DF.to_csv('DT_training.csv', encoding='utf-8', index=False)
 
 #--------------------------------------------------------------------------------------------------------------#
 # For our test data
@@ -139,5 +148,7 @@ dataFrame.Id = dataFrame.Id.astype(int)
 dataFrame.Category = dataFrame.Category.astype(int)
 print(dataFrame)
 
-dataFrame.to_csv('dTPrediction.csv', encoding='utf-8', index=False)
+
+# print("Random prediction: ", model.predict(([[1000, 5]])))
+dataFrame.to_csv('dTPredictedValues.csv', encoding='utf-8', index=False)
 #--------------------------------------------------------------------------------------------------------------#
