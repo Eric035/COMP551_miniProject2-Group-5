@@ -14,10 +14,14 @@ testDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2
 newfile = 'strongFeatures.pk'
 with open(newfile, 'rb') as fi:
     strongFeatures = pk.load(fi)
+wordsInDF = strongFeatures
 
 newfile = 'df.pk'
 with open(newfile, 'rb') as fi:
     df = pk.load(fi)
+
+# wordsInDF = list(df)            # List that contains the words in df
+
 
 newfile = 'posdf.pk'
 with open(newfile, 'rb') as fi:
@@ -43,7 +47,7 @@ numPosReviewsTrainingData = len(os.listdir(posDirectory))
 numNegReviewsTrainingData = len(os.listdir(negDirectory))
 totalNumReviewsInTrainingData = (numNegReviewsTrainingData + numPosReviewsTrainingData)
 
-trainingDataLog = np.zeros((totalNumReviewsInTrainingData, 2))       # A numpy matrix to store our result to fit our DT model
+trainingDataLog = np.zeros((totalNumReviewsInTrainingData, len(df)))       # A numpy matrix to store our result to fit our DT model
                                                                     # Columns: 1) Number of positive adjectives a review has, 2) Number of negative adjectives a review has, 3) Number of swear words a review has
 posReviewsDirectoryPath = os.path.normpath(posDirectory)
 negReviewsDirectoryPath = os.path.normpath(negDirectory)
@@ -65,11 +69,9 @@ for file in posReviews:                                 # Loop through each file
         underScoreIndex = file.index('_')           # Take the part of the string before the under score symbol, we will have the file's order
         fileOrder = int(file[:underScoreIndex])
         for w in wordList:
-            if w in strongFeatures:
-                if posdf[w] > negdf[w]:
-                    trainingDataLog[fileOrder][0] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
-                elif posdf[w] < negdf[w]:
-                    trainingDataLog[fileOrder][1] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
+            if w in wordsInDF:
+                wIndex = wordsInDF.index(w)         # Getting where the word should be in the matrix
+                trainingDataLog[fileOrder][wIndex] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
     except ValueError:                              # There is a .DS_store file we have catch in order to prevent our program from crashing
         continue
 
@@ -82,11 +84,9 @@ for file in negReviews:
         underScoreIndex = file.index('_')
         fileOrder = int(file[:underScoreIndex]) + int(len(posReviews))  # File number is obtained by taking the string the under score.
         for w in wordList:
-            if w in strongFeatures:
-                if posdf[w] > negdf[w]:
-                    trainingDataLog[fileOrder][0] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
-                elif posdf[w] < negdf[w]:
-                    trainingDataLog[fileOrder][1] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
+            if w in wordsInDF:
+                wIndex = wordsInDF.index(w) # Getting where the word should be in the matrix
+                trainingDataLog[fileOrder][wIndex] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
     except ValueError:
         continue
 
@@ -110,7 +110,7 @@ testSetDirectoryPath = os.path.normpath(testDirectory)
 filesInTest = os.listdir(testDirectory)
 
 numReviewsTestData = len(os.listdir(testDirectory))
-testDataLog = np.zeros((numReviewsTestData, 2))
+testDataLog = np.zeros((numReviewsTestData, len(df)))
 
 for file in filesInTest:
     filepath = os.path.join(testSetDirectoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
@@ -120,11 +120,9 @@ for file in filesInTest:
     index = int(file[:-4])              # Take away the '.txt' from file (string)
     # , we will have our index for our matrix
     for w in wordList:
-        if w in strongFeatures:
-            if posdf[w] > negdf[w]:
-                testDataLog[index][0] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
-            elif posdf[w] < negdf[w]:
-                testDataLog[index][1] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
+        if w in df:
+            wIndex = wIndex = wordsInDF.index(w)         # Getting where the word should be in the matrix
+            testDataLog[index][wIndex] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
 
 print("This is the input data after pre-processing for our test set: ")
 print(testDataLog)
