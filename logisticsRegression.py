@@ -4,6 +4,7 @@ import csv
 import numpy as np
 import pandas as pd
 import pickle as pk
+from sklearn.preprocessing import Normalizer
 
 posDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/pos"
 negDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/neg"
@@ -21,7 +22,6 @@ with open(newfile, 'rb') as fi:
     df = pk.load(fi)
 
 # wordsInDF = list(df)            # List that contains the words in df
-
 
 newfile = 'posdf.pk'
 with open(newfile, 'rb') as fi:
@@ -93,6 +93,12 @@ for file in negReviews:
 print("This is the input data for our Logistics Regression model: ")
 print(trainingDataLog)
 print("#--------------------------------------------------------------------------------------------------------------#")
+print("We now normalize our training data: ")
+print("")
+# normalizer_tranformer = Normalizer().fit(trainingDataLog)
+# X_train_normalized = normalizer_tranformer.transform(trainingDataLog)
+
+print("#--------------------------------------------------------------------------------------------------------------#")
 trainTarget = [0] * totalNumReviewsInTrainingData
 for i in range(len(posReviews)):
     trainTarget[i] = 1
@@ -120,8 +126,8 @@ for file in filesInTest:
     index = int(file[:-4])              # Take away the '.txt' from file (string)
     # , we will have our index for our matrix
     for w in wordList:
-        if w in df:
-            wIndex = wIndex = wordsInDF.index(w)         # Getting where the word should be in the matrix
+        if w in wordsInDF:
+            wIndex = wordsInDF.index(w)         # Getting where the word should be in the matrix
             testDataLog[index][wIndex] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
 
 print("This is the input data after pre-processing for our test set: ")

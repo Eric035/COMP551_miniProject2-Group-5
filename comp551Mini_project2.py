@@ -34,31 +34,7 @@ AdjList = lowerCaseAndSplit(AdjString)          # A list of adjectives
 predicted_value = np.zeros([12501])
 observed_value = np.zeros([12501])
 
-# def top150Words(directoryString):
-#     wordFreqDict = {}  # A dictionary to store the frequency of every word from all comments
-#     directory = os.listdir(directoryString)
-#     directoryPath = os.path.normpath(directoryString)
-#     for file in directory:
-#         filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
-#         content = open(filepath, 'r', encoding='latin-1')
-#         content = content.read()
-#         wordList = (content.lower()).split()
-#
-#
-#         for z in wordList:  # Loop through each comment
-#             if z in wordFreqDict:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
-#                 wordFreqDict[z] += 1
-#             else:  # Else case: We have encountered a new word, therefore we just simply add the word into our dictionary and set its value to 1
-#                 wordFreqDict[z] = 1
-#
-#     wordListTuple = sorted(wordFreqDict.items(), key=lambda x: x[1],reverse=True)  # Sort our dictionary by value and store it into a list of tuples
-#     wordListTuple = wordListTuple[0:500]  # We only need the top 160 values(frequencies) from our list
-#
-#     x = sorted(wordListTuple)
-#     print(x)
-#
-# #top150Words(posDirectory)
-#top150Words(negDirectory)
+
 
 def checkAdjFreq (directoryString):   # A function that takes in a review (.txt file), count the frequencies of each adjective that are in our AdjList appear in that particular review.
     freqAdjDict = {}

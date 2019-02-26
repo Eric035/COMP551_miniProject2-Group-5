@@ -14,7 +14,7 @@ newfile = 'strongFeatures.pk'
 with open(newfile, 'rb') as fi:
     strongFeatures = pk.load(fi)
 
-print(strongFeatures)
+print(len(strongFeatures))
 
 newfile = 'df.pk'
 with open(newfile, 'rb') as fi:
