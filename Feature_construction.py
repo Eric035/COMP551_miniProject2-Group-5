@@ -5,14 +5,6 @@
 #from pathlib import Path
 
 
-
-##### TO DO #####
-
-#Fix ordering of file reader
-
-
-
-
 import os, sys
 import numpy as np
 import pickle as pk
