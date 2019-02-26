@@ -21,6 +21,9 @@ import matplotlib.pyplot as pp
 import csv
 import os
 
+from nltk import word_tokenize
+from nltk.util import ngrams
+
 predicted_values = np.zeros([12501])
 observed_values = np.zeros([12501])
 
@@ -39,10 +42,12 @@ def preprocess(content):
         .replace( ":", "").replace("(", "").replace(")", "").replace("<", " ").replace(">", "").replace(">>", "") \
         .replace(">", "").replace("/", "")
 
-    content = content.replace("the", "").replace("of", "").replace("", "")
-
     return content
 
+
+
+
+## BI-GRAMS
 
 wordFreqDict = {}  # A dictionary to store the frequency of every word from all comments
 
@@ -83,7 +88,7 @@ for file in directory:
             wordFreqDict[z] = 1
 
 wordListTuple = sorted(wordFreqDict.items(), key=lambda x: x[1],reverse=True)  # Sort our dictionary by value and store it into a list of tuples
-wordListTuple = wordListTuple[0:5000]  # We only need the top 2000 values(frequencies) from our list
+wordListTuple = wordListTuple[0:20000]  # We only need the top 2000 values(frequencies) from our list
 
 topWords = list()
 
@@ -108,11 +113,12 @@ print(features)
 directory = os.listdir(posDirectory)
 directoryPath = os.path.normpath(posDirectory)
 
+df = {}
 negdf = {}  # A dictionary to store the frequency of every word from all comments
 
 for word in features:
     negdf[word] = 0
-
+    df[word] = 0
 for file in directory:
 
     filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
@@ -125,6 +131,7 @@ for file in directory:
     for z in wordList:  # Loop through each comment
         if z in features:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
             negdf[z] += 1
+            df[z] += 1
 
 directory = os.listdir(negDirectory)
 directoryPath = os.path.normpath(negDirectory)
@@ -133,7 +140,7 @@ posdf = {}
 
 for word in features:
     posdf[word] = 0
-
+    df[word] = 0
 for file in directory:
 
     filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
@@ -146,14 +153,16 @@ for file in directory:
     for z in wordList:  # Loop through each comment
         if z in features:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
             posdf[z] += 1
+            df[z] += 1
 
 strongFeatures = []
 
 for word in posdf:
     if word in posdf:
         if word in negdf:
-            ratio = (posdf[word]+1)/(negdf[word]+1)
-            if abs(ratio) < 0.6 or abs(ratio) > 1.4:
+            posratio = (posdf[word]+1)/(negdf[word]+1)
+            negratio = (negdf[word] + 1) / (posdf[word] + 1)
+            if posratio > 1.8 or negratio > 1.8:
                 strongFeatures.append(word)
 
 print(strongFeatures)
@@ -163,11 +172,8 @@ print(len(strongFeatures))
 with open('strongFeatures.pk', 'wb') as f:  # Python 3: open(..., 'wb')
     pk.dump(strongFeatures, f)
 
-with open('posdf.pk', 'wb') as f:  # Python 3: eopen(..., 'wb')
-    pk.dump(posdf, f)
-
-with open('negdf.pk', 'wb') as f:  # Python 3: open(..., 'wb')
-    pk.dump(negdf, f)
+with open('df.pk', 'wb') as f:  # Python 3: open(..., 'wb')
+    pk.dump(df, f)
 
 '''
 
@@ -245,3 +251,4 @@ def classify(directory):
 classify(posDirectory)
 
 '''
+
