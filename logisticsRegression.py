@@ -1,14 +1,15 @@
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import Normalizer
 import os, sys
 import csv
 import numpy as np
 import pandas as pd
 import pickle as pk
-from sklearn.preprocessing import Normalizer
 
-posDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/pos"
-negDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/neg"
-testDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/test"
+posDirectory = "/Users/Donovan/Desktop/proj2_materials/Train_Set/pos"
+negDirectory = "/Users/Donovan/Desktop/proj2_materials/Train_Set/neg"
+testDirectory = "/Users/Donovan/Desktop/proj2_materials/Test_Set"
 
 # Files loaded
 
@@ -31,6 +32,8 @@ newfile = 'negdf.pk'
 with open(newfile, 'rb') as fi:
     negdf = pk.load(fi)
 
+print(len(df))
+print(len(strongFeatures))
 #--------------------------------------------------------------------------------------------------------------#
 # Logistic Regression Classifier
 print("We are training our Logistics Regression model with our training set...")
@@ -47,7 +50,7 @@ numPosReviewsTrainingData = len(os.listdir(posDirectory))
 numNegReviewsTrainingData = len(os.listdir(negDirectory))
 totalNumReviewsInTrainingData = (numNegReviewsTrainingData + numPosReviewsTrainingData)
 
-trainingDataLog = np.zeros((totalNumReviewsInTrainingData, len(df)))       # A numpy matrix to store our result to fit our DT model
+trainingDataLog = np.ones((totalNumReviewsInTrainingData, len(df)))       # A numpy matrix to store our result to fit our DT model
                                                                     # Columns: 1) Number of positive adjectives a review has, 2) Number of negative adjectives a review has, 3) Number of swear words a review has
 posReviewsDirectoryPath = os.path.normpath(posDirectory)
 negReviewsDirectoryPath = os.path.normpath(negDirectory)
@@ -57,21 +60,13 @@ for file in posReviews:                                 # Loop through each file
     content = open(filepath, 'r', encoding='latin-1')
     content = content.read()
     wordList = (content.lower()).split()
-    wordlistwithfreq = {}
-    temp = set(wordList)
-    for word in temp:
-        wordlistwithfreq[word] = 0
-
-    for word in wordList:
-        wordlistwithfreq[word] += 1
-
     try:
         underScoreIndex = file.index('_')           # Take the part of the string before the under score symbol, we will have the file's order
         fileOrder = int(file[:underScoreIndex])
         for w in wordList:
             if w in wordsInDF:
                 wIndex = wordsInDF.index(w)         # Getting where the word should be in the matrix
-                trainingDataLog[fileOrder][wIndex] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
+                trainingDataLog[fileOrder][wIndex] += 1 + (np.log(25000) / (1 + df[w]))
     except ValueError:                              # There is a .DS_store file we have catch in order to prevent our program from crashing
         continue
 
@@ -86,7 +81,7 @@ for file in negReviews:
         for w in wordList:
             if w in wordsInDF:
                 wIndex = wordsInDF.index(w) # Getting where the word should be in the matrix
-                trainingDataLog[fileOrder][wIndex] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
+                trainingDataLog[fileOrder][wIndex] += 1 + (np.log(25000) / (1 + df[w]))
     except ValueError:
         continue
 
@@ -106,6 +101,58 @@ print("And this is the target parameter for our Logistics Regression model: ")
 print (trainTarget)
 print("#--------------------------------------------------------------------------------------------------------------#")
 
+
+
+
+
+
+
+X_train, X_test, y_train, y_test = train_test_split(trainingDataLog, trainTarget, test_size=0.33)
+
+
+print("X train : ", len(X_train))
+print("Y train : ",len(y_train))
+print("X test : ", len(X_test))
+print("Y test : ", len(y_test))
+
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+
+testSetPrediction = model.predict(X_test)
+
+
+
+pCounter = 0
+nCounter = 0
+for i in range(0,len(y_test)):
+    if testSetPrediction[i] == 1 and y_test[i] == 1 or testSetPrediction[i] == 0 and y_test[i] == 0:
+        pCounter += 1
+    else:
+        nCounter += 1
+
+posPredictedReviews = (pCounter / len(y_test)) * 100
+negPredictedReviews = (nCounter / len(y_test)) * 100
+print("In our test data set, ", posPredictedReviews, "% are predicted right.")
+print("And ", negPredictedReviews, "% are predicted wrong.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+
 model = LogisticRegression()
 model.fit(trainingDataLog, trainTarget)
 
@@ -116,7 +163,7 @@ testSetDirectoryPath = os.path.normpath(testDirectory)
 filesInTest = os.listdir(testDirectory)
 
 numReviewsTestData = len(os.listdir(testDirectory))
-testDataLog = np.zeros((numReviewsTestData, len(df)))
+testDataLog = np.ones((numReviewsTestData, len(df)))
 
 for file in filesInTest:
     filepath = os.path.join(testSetDirectoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
@@ -128,7 +175,7 @@ for file in filesInTest:
     for w in wordList:
         if w in wordsInDF:
             wIndex = wordsInDF.index(w)         # Getting where the word should be in the matrix
-            testDataLog[index][wIndex] += wordlistwithfreq[word] * (np.log(25000) / (1 + df[w]))
+            testDataLog[index][wIndex] += 1 + (np.log(25000) / (1 + df[w]))
 
 print("This is the input data after pre-processing for our test set: ")
 print(testDataLog)
@@ -168,3 +215,5 @@ print(dataFrame)
 # print("Random prediction: ", model.predict(([[1000, 10010]])))
 dataFrame.to_csv('logisticRegPredictions.csv', encoding='utf-8', index=False)
 #--------------------------------------------------------------------------------------------------------------#
+
+'''
