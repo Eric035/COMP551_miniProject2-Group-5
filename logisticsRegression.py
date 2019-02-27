@@ -4,6 +4,7 @@ import csv
 import numpy as np
 import pandas as pd
 import pickle as pk
+from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
@@ -24,17 +25,6 @@ newfile = 'df.pk'
 with open(newfile, 'rb') as fi:
     df = pk.load(fi)
 
-# wordsInDF = list(df)            # List that contains the words in df
-
-newfile = 'posdf.pk'
-with open(newfile, 'rb') as fi:
-    posdf = pk.load(fi)
-
-newfile = 'negdf.pk'
-with open(newfile, 'rb') as fi:
-    negdf = pk.load(fi)
-
-
 posReviews = os.listdir(posDirectory)
 negReviews = os.listdir(negDirectory)                           # Files in the directory neg
 numPosReviewsTrainingData = len(os.listdir(posDirectory))
@@ -52,7 +42,6 @@ def adjStringToDict (adjString):            # Covert a string of adjectives into
     for adjective in adjList:
         adjDict[adjective] = 0
     return adjDict
-
 
 
 trainingDataLog = np.ones((totalNumReviewsInTrainingData, len(df)))       # A numpy matrix to store our result to fit our Logistic Regression model
@@ -103,8 +92,7 @@ print("")
 print("#--------------------------------------------------------------------------------------------------------------#")
 #--------------------------------------------------------------------------------------------------------------#
 '''
-
-loadFile = 'trainingDataLogMatrix.pk'
+loadFile = 'trainingDataLogMatrix.pk'           # Load our trainingData Matrix 
 with open(loadFile, 'rb') as inputFile:
     trainingDataLog = pk.load(inputFile)
 
@@ -112,38 +100,10 @@ print("#------------------------------------------------------------------------
 trainTarget = [0] * totalNumReviewsInTrainingData
 for i in range(len(posReviews)):
     trainTarget[i] = 1
-print("And this is the target parameter for our Logistics Regression model: ")
+print("This is the target parameter for our Logistics Regression model: ")
 print (trainTarget)
 print("#--------------------------------------------------------------------------------------------------------------#")
-
-X_train, X_test, y_train, y_test = train_test_split(trainingDataLog, trainTarget, test_size=0.33)
-
-
-print("X train : ", len(X_train))
-print("Y train : ",len(y_train))
-print("X test : ", len(X_test))
-print("Y test : ", len(y_test))
-
-
 model = LogisticRegression()
-model.fit(X_train, y_train)
-
-testSetPrediction = model.predict(X_test)
-
-
-pCounter = 0
-nCounter = 0
-for i in range(len(y_test)):
-    if testSetPrediction[i] == 1 and y_test[i] == 1 or testSetPrediction[i] == 0 and y_test[i] == 0:
-        pCounter += 1
-    else:
-        nCounter += 1
-
-posPredictedReviews = (pCounter / len(y_test)) * 100
-negPredictedReviews = (nCounter / len(y_test)) * 100
-print("In our test data set, ", posPredictedReviews, "% are predicted right.")
-print("And ", negPredictedReviews, "% are predicted wrong.")
-
 #--------------------------------------------------------------------------------------------------------------#
 print("#--------------------------------------------------------------------------------------------------------------#")
 # K-Fold Cross Validation
@@ -154,21 +114,8 @@ kf = KFold(n_splits=5)          # Use 5 folds on the dataset
 for train_index, test_index in kf.split([1,2,3,4,5,6,7,8,9]):       # An example to show how K-fold works
     print(train_index, test_index)
 '''
-
-kf = KFold(n_splits=5)
-print(kf.split(trainingDataLog))
-
-def get_score (model, X_train, X_test, y_train, y_test):
-    model.fit(X_train, y_train)
-    return model.score(X_test, y_test)
-
-numFold = 1         #
-for train_index, test_index in kf.split(trainingDataLog):
-    print("The number of fold: ", numFold, "train_index = ", train_index, ", test_index = ", test_index)
-    X_train, X_test, y_train, y_test =
-    print(get_score(model, X_train, X_test, y_train, y_test))
-
-
+scores = cross_val_score(model, trainingDataLog, trainTarget, cv=5)
+print(scores)
 
 '''
 model = LogisticRegression()
