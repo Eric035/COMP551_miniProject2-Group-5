@@ -1,15 +1,17 @@
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import Normalizer
 import os, sys
 import csv
 import numpy as np
 import pandas as pd
 import pickle as pk
+from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import Normalizer
 
-posDirectory = "/Users/Donovan/Desktop/proj2_materials/Train_Set/pos"
-negDirectory = "/Users/Donovan/Desktop/proj2_materials/Train_Set/neg"
-testDirectory = "/Users/Donovan/Desktop/proj2_materials/Test_Set"
+posDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/pos"
+negDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/neg"
+testDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/test"
 
 # Files loaded
 
@@ -32,8 +34,6 @@ newfile = 'negdf.pk'
 with open(newfile, 'rb') as fi:
     negdf = pk.load(fi)
 
-print(len(df))
-print(len(strongFeatures))
 #--------------------------------------------------------------------------------------------------------------#
 # Logistic Regression Classifier
 print("We are training our Logistics Regression model with our training set...")
@@ -50,12 +50,12 @@ numPosReviewsTrainingData = len(os.listdir(posDirectory))
 numNegReviewsTrainingData = len(os.listdir(negDirectory))
 totalNumReviewsInTrainingData = (numNegReviewsTrainingData + numPosReviewsTrainingData)
 
-trainingDataLog = np.ones((totalNumReviewsInTrainingData, len(df)))       # A numpy matrix to store our result to fit our DT model
+trainingDataLog = np.ones((totalNumReviewsInTrainingData, len(df)))       # A numpy matrix to store our result to fit our Logistic Regression model
                                                                     # Columns: 1) Number of positive adjectives a review has, 2) Number of negative adjectives a review has, 3) Number of swear words a review has
 posReviewsDirectoryPath = os.path.normpath(posDirectory)
 negReviewsDirectoryPath = os.path.normpath(negDirectory)
 
-for file in posReviews:                                 # Loop through each file in the pos directory to organize data for our DT model
+for file in posReviews:                                 # Loop through each file in the pos directory to organize data for our model
     filepath = os.path.join(posReviewsDirectoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
     content = open(filepath, 'r', encoding='latin-1')
     content = content.read()
@@ -102,11 +102,6 @@ print (trainTarget)
 print("#--------------------------------------------------------------------------------------------------------------#")
 
 
-
-
-
-
-
 X_train, X_test, y_train, y_test = train_test_split(trainingDataLog, trainTarget, test_size=0.33)
 
 
@@ -123,7 +118,6 @@ model.fit(X_train, y_train)
 testSetPrediction = model.predict(X_test)
 
 
-
 pCounter = 0
 nCounter = 0
 for i in range(0,len(y_test)):
@@ -137,34 +131,39 @@ negPredictedReviews = (nCounter / len(y_test)) * 100
 print("In our test data set, ", posPredictedReviews, "% are predicted right.")
 print("And ", negPredictedReviews, "% are predicted wrong.")
 
+#--------------------------------------------------------------------------------------------------------------#
+print("#--------------------------------------------------------------------------------------------------------------#")
+# K-Fold Cross Validation
+print("Running K-Fold cross validation...")
 
+'''
+kf = KFold(n_splits=5)          # Use 5 folds on the dataset
+for train_index, test_index in kf.split([1,2,3,4,5,6,7,8,9]):       # An example to show how K-fold works
+    print(train_index, test_index)
+'''
 
+folds = StratifiedKFold(n_splits=5)
+print(folds.split(trainingDataLog))
 
+def get_score (model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train)
+    return model.score(X_test, y_test)
 
-
-
-
-
-
-
-
+for train_index, test_index in folds.split(trainingDataLog):
+    print(get_score(model, ))
 
 
 
 '''
-
 model = LogisticRegression()
 model.fit(trainingDataLog, trainTarget)
-
 #--------------------------------------------------------------------------------------------------------------#
 # For our test data
 print("Now we are going to extract the features from our test data set, and prepare it for our Logistic Regression model: ")
 testSetDirectoryPath = os.path.normpath(testDirectory)
 filesInTest = os.listdir(testDirectory)
-
 numReviewsTestData = len(os.listdir(testDirectory))
 testDataLog = np.ones((numReviewsTestData, len(df)))
-
 for file in filesInTest:
     filepath = os.path.join(testSetDirectoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
     content = open(filepath, 'r', encoding='latin-1')
@@ -176,7 +175,6 @@ for file in filesInTest:
         if w in wordsInDF:
             wIndex = wordsInDF.index(w)         # Getting where the word should be in the matrix
             testDataLog[index][wIndex] += 1 + (np.log(25000) / (1 + df[w]))
-
 print("This is the input data after pre-processing for our test set: ")
 print(testDataLog)
 print("#--------------------------------------------------------------------------------------------------------------#")
@@ -185,11 +183,9 @@ print('')
 print("Result: ")
 testSetPrediction= model.predict(testDataLog)
 print(testSetPrediction)
-
 pCounter = 0
 nCounter = 0
 csv_testSetPrediction = np.zeros((numReviewsTestData, 2))   # A matrix that stores our predicted values for our csv data frame.
-
 for i in range(numReviewsTestData):
     if testSetPrediction[i] == 1:
         pCounter += 1
@@ -199,21 +195,16 @@ for i in range(numReviewsTestData):
         nCounter += 1
         csv_testSetPrediction[i][0] = int(i)
         csv_testSetPrediction[i][1] = int(0)
-
 posReviewPercentage = (pCounter / numReviewsTestData) * 100
 negReviewPercentage = (nCounter / numReviewsTestData) * 100
 print("In our test data set, ", posReviewPercentage, "% are predicted as positive reviews.")
 print("And ", negReviewPercentage, "% are predicted as negative reviews.")
-
 print("--------------------------------------------------------------------------------------------------------------")
 print("CSV Data frame: ")
 dataFrame = pd.DataFrame(csv_testSetPrediction, columns=["Id", "Category"])
 dataFrame.Id = dataFrame.Id.astype(int)
 dataFrame.Category = dataFrame.Category.astype(int)
 print(dataFrame)
-
 # print("Random prediction: ", model.predict(([[1000, 10010]])))
 dataFrame.to_csv('logisticRegPredictions.csv', encoding='utf-8', index=False)
-#--------------------------------------------------------------------------------------------------------------#
-
 '''
