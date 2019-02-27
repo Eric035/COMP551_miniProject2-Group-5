@@ -1,161 +1,382 @@
 # COMP551 PROJECT 2: Group number: 5
-# Student Name: Cheuk Hang Leung (Eric), Donovan Chiazzese, Mohamed Maoui
+# Student Name: Cheuk Hang Leung (Eric), Donovan Chiazzese
+# Student ID: 260720788, (Put ur ID's here)
+#----------------------------------------------------------------------------------------------------------#
+#from pathlib import Path
+import os, sys
+import numpy as np
+import pickle as pk
+import pandas as pd
+import matplotlib.pyplot as pp
+import csv
+import os
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import Normalizer
+##### TO DO #####
+
+#Fix ordering of file reader
+import os, sys
+import numpy as np
+import pickle as pk
+import pandas as pd
+import matplotlib.pyplot as pp
+import csv
+import os
+
+from nltk import word_tokenize
+from nltk.util import ngrams
+
+posDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/pos"
+negDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/neg"
+testDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/test"
+
+posReviews = os.listdir(posDirectory)
+negReviews = os.listdir(negDirectory)                           # Files in the directory neg
+numPosReviewsTrainingData = len(os.listdir(posDirectory))
+numNegReviewsTrainingData = len(os.listdir(negDirectory))
+totalNumReviewsInTrainingData = (numNegReviewsTrainingData + numPosReviewsTrainingData)
+
+loadFile = 'trainingDataLogMatrix.pk'
+with open(loadFile, 'rb') as inputFile:
+    trainingDataLog = pk.load(inputFile)
+
+trainTarget = [0] * totalNumReviewsInTrainingData
+for i in range(len(posReviews)):
+    trainTarget[i] = 1
+
+kf = KFold(n_splits=5)
+print(kf.split(trainingDataLog))
+
+model = LogisticRegression()
+
+def get_score (model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train)
+    return model.score(X_test, y_test)
+
+numFold = 1         #
+for train_index, test_index in kf.split(trainingDataLog):
+    print("The number of fold: ", numFold, "train_index = ", train_index, ", test_index = ", test_index)
+    X_train, X_test, y_train, y_test = trainingDataLog[train_index], trainingDataLog[test_index], trainTarget[train_index], trainTarget[test_index]
+    print(get_score(model, X_train, X_test, y_train, y_test))
+    numFold += 1
+
+
+
+
+'''
+predicted_values = np.zeros([12501])
+observed_values = np.zeros([12501])
+
+posDirectory = "/Users/# COMP551 PROJECT 2: Group number: 5"
+# Student Name: Cheuk Hang Leung (Eric), Donovan Chiazzese
 # Student ID: 260720788, (Put ur ID's here)
 #----------------------------------------------------------------------------------------------------------#
 #from pathlib import Path
 
-import pickle as pk
-
 ##### TO DO #####
 
 #Fix ordering of file reader
+import os, sys
+import numpy as np
+import pickle as pk
+import pandas as pd
+import matplotlib.pyplot as pp
+import csv
+import os
 
-newfile = 'strongFeatures.pk'
-with open(newfile, 'rb') as fi:
-    strongFeatures = pk.load(fi)
+from nltk import word_tokenize
+from nltk.util import ngrams
 
+predicted_values = np.zeros([12501])
+observed_values = np.zeros([12501])
+
+posDirectory = "/Users/Donovan/Desktop/proj2_materials/Train_Set/pos"
+negDirectory = "/Users/Donovan/Desktop/proj2_materials/Train_Set/neg"
+testDirectory = "/Users/Donovan/Desktop/proj2_materials/Test_Set"
+
+def lowerCaseAndSplit (words):
+    wList = (words.lower()).split(",")
+    return wList
+
+def preprocess(content):
+
+    content = content.replace(".", "").replace(";", "").replace(",", "").replace("!", "").replace("?", "").replace("^", "")\
+        .replace( ":", "").replace("(", "").replace(")", "").replace("<", " ").replace(">", "").replace(">>", "") \
+        .replace(">", "").replace("/", "")
+
+    return content
+
+
+## BI-GRAMS
+
+wordFreqDict = {}  # A dictionary to store the frequency of every word from all comments
+
+directory = os.listdir(posDirectory)
+directoryPath = os.path.normpath(posDirectory)
+
+for file in directory:
+
+    filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
+    content = open(filepath, 'r', encoding='latin-1')
+    content = content.read()
+    content = preprocess(content)
+    wordList = (content.lower()).split()
+
+
+    for z in wordList:  # Loop through each comment
+        if z in wordFreqDict:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
+            wordFreqDict[z] += 1
+        else:  # Else case: We have encountered a new word, therefore we just simply add the word into our dictionary and set its value to 1
+            wordFreqDict[z] = 1
+
+
+directory = os.listdir(negDirectory)
+directoryPath = os.path.normpath(negDirectory)
+
+for file in directory:
+
+    filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
+    content = open(filepath, 'r', encoding='latin-1')
+    content = content.read()
+    content = preprocess(content)
+    wordList = (content.lower()).split()
+
+    for z in wordList:  # Loop through each comment
+        if z in wordFreqDict:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
+            wordFreqDict[z] += 1
+        else:  # Else case: We have encountered a new word, therefore we just simply add the word into our dictionary and set its value to 1
+            wordFreqDict[z] = 1
+
+wordListTuple = sorted(wordFreqDict.items(), key=lambda x: x[1],reverse=True)  # Sort our dictionary by value and store it into a list of tuples
+wordListTuple = wordListTuple[0:50000]  # We only need the top 2000 values(frequencies) from our list
+
+topWords = list()
+
+for i in range(len(wordListTuple)):
+    temp = wordListTuple[i][0]
+    topWords.append(temp)
+
+adj = "amazing,alluring,adventurous,amusing,awesome,ambitious,beautiful,bold,brainy,breathtaking,blazing,brazen,cool,cheerful,charming,creative,clever,daring,delightful,dazzling,energetic,elegant,excellent,exceptional,emotional,exuberant,fascinating,fantastic,funny,genius,glorious,great,genuine,happy,honest,helpful,heavenly,hilarious,humorous,hearty,Incredible,inspirational,inspiring,impeccable,ingenious,impressive,innovative,insightful,intense,impartial,imaginative,phenomenal,always,also,both,hit,fun,zesty,!,?,absurd,arrogant,boring,bad,intolerant,crazy,miserly,patronizing,vulgar,crude,obnoxious,offensive,violent,cryptic,failure,fail,cringy,atrocious,awful,cheap,crummy,dreadful,lousy,noisy,poor,poorly,unacceptable,garbage,gross,horrible,inaccurate,inferior,obnoxious,synthetic,careless,cheesy,crappy,abominable,faulty,godawful,substandard,despicable,horrendous,terrible,attempt,upsetting,not,no,vile,abominable,appalling,cruel,disgusting,dreadful,eerie,grim,hideous,disastrous,disaster,horrid,horrendous,any,can't,because,better,anything,unpleasant,defective,miserable,failed,unsatisfiedact,actor,actress,adaptation,ambiance,angle,antagonist,protagonist,anti-climax,anti-hero,archetype,atmosphere,audience,audition,audio,author,backdrop,background,balance,blockbuster,box-office,cameo,camera,caption,caricature,cast,casting,censor,cgi,character,cinema,cinematic,cinerama,cliffhanger,climax,comic,commentary,compose,compostion,contrast,convention,credits,credit,critic,critique,crisis,depth,dialogue,director,directing,documentary,document,dynamic,edit,editing,ensemble,epilogue,exposition,extra,feature,film,movie,featurette,flick,focus,footage,foreshadow,foreshadowing,format,frame,framing,genre,hero,homage,image,interlude,lens,light,lighting,mark,master,metaphor,simile,methods,monitor,monologue,montage,musical,romance,narrator,narrate,narration,narrative,nostalgia,nostalgic,novel,overture,tone,pace,parody,persona,plot,premiere,prequel,preview,design,prologue,rate,rating,reaction,shot,remake,resolution,vision,satire,scene,scenery,score,screen,write,writer,writing,script,sequence,setting,sound,quality,soundtrack,effects,spoof,studio,subplot,suspense,symbolism,talent,theme,producer,production,relief,perform,performance"
+adj = lowerCaseAndSplit(adj)
+
+for word in adj:
+    if word in topWords:
+        continue
+    else:
+        topWords.append(word)
+
+features = topWords
+print(features)
+
+
+
+directory = os.listdir(posDirectory)
+directoryPath = os.path.normpath(posDirectory)
+
+df = {}
+negdf = {}  # A dictionary to store the frequency of every word from all comments
+
+for word in features:
+    negdf[word] = 0
+    df[word] = 0
+for file in directory:
+
+    filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
+    content = open(filepath, 'r', encoding='latin-1')
+    content = content.read()
+    content = preprocess(content)
+    wordList = (content.lower()).split()
+
+    wordList = set(wordList)
+    for z in wordList:  # Loop through each comment
+        if z in features:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
+            negdf[z] += 1
+            df[z] += 1
+
+directory = os.listdir(negDirectory)
+directoryPath = os.path.normpath(negDirectory)
+
+posdf = {}
+
+for word in features:
+    posdf[word] = 0
+    df[word] = 0
+for file in directory:
+
+    filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
+    content = open(filepath, 'r', encoding='latin-1')
+    content = content.read()
+    content = preprocess(content)
+    wordList = (content.lower()).split()
+
+    wordList = set(wordList)
+    for z in wordList:  # Loop through each comment
+        if z in features:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
+            posdf[z] += 1
+            df[z] += 1
+
+strongFeatures = []
+
+for word in posdf:
+    if word in posdf:
+        if word in negdf:
+            posratio = (posdf[word]+1)/(negdf[word]+1)
+            negratio = (negdf[word] + 1) / (posdf[word] + 1)
+            if posratio > 1.2 or negratio > 1.2:
+                strongFeatures.append(word)
+
+print(strongFeatures)
 print(len(strongFeatures))
 
-newfile = 'df.pk'
-with open(newfile, 'rb') as fi:
-    df = pk.load(fi)
+# This was the code to write the files
+with open('strongFeatures.pk', 'wb') as f:  # Python 3: open(..., 'wb')
+    pk.dump(strongFeatures, f)
 
-print(df)
+with open('df.pk', 'wb') as f:  # Python 3: open(..., 'wb')
+    pk.dump(df, f)Donovan/Desktop/proj2_materials/Train_Set/pos"
+negDirectory = "/Users/Donovan/Desktop/proj2_materials/Train_Set/neg"
+testDirectory = "/Users/Donovan/Desktop/proj2_materials/Test_Set"
+
+def lowerCaseAndSplit (words):
+    wList = (words.lower()).split(",")
+    return wList
+
+def preprocess(content):
+
+    content = content.replace(".", "").replace(";", "").replace(",", "").replace("!", "").replace("?", "").replace("^", "")\
+        .replace( ":", "").replace("(", "").replace(")", "").replace("<", " ").replace(">", "").replace(">>", "") \
+        .replace(">", "").replace("/", "")
+
+    return content
 
 
-#
-#
-# import os, sys
-# import numpy as np
-# import pandas as pd
-# import matplotlib.pyplot as pp
-# import csv
-# import os
-#
-# predicted_values = np.zeros([12501])
-# observed_values = np.zeros([12501])
-#
-# posDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/pos"
-# negDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/neg"
-# testDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/test"
-#
-#
-# def lowerCaseAndSplit (words):
-#     wList = (words.lower()).split(",")
-#     return wList
-#
-# def preprocess(content):
-#
-#     content = content.replace(".", "").replace(";", "").replace(",", "").replace("!", "").replace("?", "").replace("^", "")\
-#         .replace( ":", "").replace("(", "").replace(")", "").replace("<", " ").replace(">", "").replace(">>", "") \
-#         .replace(">", "").replace("/", "")
-#
-#     content = content.replace("the", "").replace("of", "").replace("", "")
-#
-#     return content
-#
-#
-# wordFreqDict = {}  # A dictionary to store the frequency of every word from all comments
-#
-# directory = os.listdir(posDirectory)
-# directoryPath = os.path.normpath(posDirectory)
-#
-# for file in directory:
-#
-#     filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
-#     content = open(filepath, 'r', encoding='latin-1')
-#     content = content.read()
-#     content = preprocess(content)
-#     wordList = (content.lower()).split()
-#
-#
-#     for z in wordList:  # Loop through each comment
-#         if z in wordFreqDict:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
-#             wordFreqDict[z] += 1
-#         else:  # Else case: We have encountered a new word, therefore we just simply add the word into our dictionary and set its value to 1
-#             wordFreqDict[z] = 1
-#
-#
-# directory = os.listdir(negDirectory)
-# directoryPath = os.path.normpath(negDirectory)
-#
-# for file in directory:
-#
-#     filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
-#     content = open(filepath, 'r', encoding='latin-1')
-#     content = content.read()
-#     content = preprocess(content)
-#     wordList = (content.lower()).split()
-#
-#     for z in wordList:  # Loop through each comment
-#         if z in wordFreqDict:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
-#             wordFreqDict[z] += 1
-#         else:  # Else case: We have encountered a new word, therefore we just simply add the word into our dictionary and set its value to 1
-#             wordFreqDict[z] = 1
-#
-# wordListTuple = sorted(wordFreqDict.items(), key=lambda x: x[1],reverse=True)  # Sort our dictionary by value and store it into a list of tuples
-# wordListTuple = wordListTuple[0:5000]  # We only need the top 2000 values(frequencies) from our list
-#
-# topWords = list()
-#
-# for i in range(len(wordListTuple)):
-#     temp = wordListTuple[i][0]
-#     topWords.append(temp)
-#
-# adj = "amazing,alluring,adventurous,amusing,awesome,ambitious,beautiful,bold,brainy,breathtaking,blazing,brazen,cool,cheerful,charming,creative,clever,daring,delightful,dazzling,energetic,elegant,excellent,exceptional,emotional,exuberant,fascinating,fantastic,funny,genius,glorious,great,genuine,happy,honest,helpful,heavenly,hilarious,humorous,hearty,Incredible,inspirational,inspiring,impeccable,ingenious,impressive,innovative,insightful,intense,impartial,imaginative,phenomenal,always,also,both,hit,fun,zesty,!,?,absurd,arrogant,boring,bad,intolerant,crazy,miserly,patronizing,vulgar,crude,obnoxious,offensive,violent,cryptic,failure,fail,cringy,atrocious,awful,cheap,crummy,dreadful,lousy,noisy,poor,poorly,unacceptable,garbage,gross,horrible,inaccurate,inferior,obnoxious,synthetic,careless,cheesy,crappy,abominable,faulty,godawful,substandard,despicable,horrendous,terrible,attempt,upsetting,not,no,vile,abominable,appalling,cruel,disgusting,dreadful,eerie,grim,hideous,disastrous,disaster,horrid,horrendous,any,can't,because,better,anything,unpleasant,defective,miserable,failed,unsatisfied"
-# adj = lowerCaseAndSplit(adj)
-#
-# for word in adj:
-#     if word in topWords:
-#         continue
-#     else:
-#         topWords.append(word)
-#
-# features = topWords
-# print(features)
-#
-#
-#
-# directory = os.listdir(posDirectory)
-# directoryPath = os.path.normpath(posDirectory)
-#
-# df = {}  # A dictionary to store the frequency of every word from all comments
-#
-# for word in features:
-#     df[word] = 0
-#
-# for file in directory:
-#
-#     filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
-#     content = open(filepath, 'r', encoding='latin-1')
-#     content = content.read()
-#     content = preprocess(content)
-#     wordList = (content.lower()).split()
-#
-#     wordList = set(wordList)
-#     for z in wordList:  # Loop through each comment
-#         if z in features:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
-#             df[z] += 1
-#
-# directory = os.listdir(negDirectory)
-# directoryPath = os.path.normpath(negDirectory)
-#
-# for word in features:
-#     df[word] = 0
-#
-# for file in directory:
-#
-#     filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
-#     content = open(filepath, 'r', encoding='latin-1')
-#     content = content.read()
-#     content = preprocess(content)
-#     wordList = (content.lower()).split()
-#
-#     wordList = set(wordList)
-#     for z in wordList:  # Loop through each comment
-#         if z in features:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
-#             df[z] += 1
-#
-#
-# with open('df.pk', 'wb') as f:  # Python 3: eopen(..., 'wb')
-#     pk.dump(df, f)
+## BI-GRAMS
+
+wordFreqDict = {}  # A dictionary to store the frequency of every word from all comments
+
+directory = os.listdir(posDirectory)
+directoryPath = os.path.normpath(posDirectory)
+
+for file in directory:
+
+    filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
+    content = open(filepath, 'r', encoding='latin-1')
+    content = content.read()
+    content = preprocess(content)
+    wordList = (content.lower()).split()
+
+
+    for z in wordList:  # Loop through each comment
+        if z in wordFreqDict:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
+            wordFreqDict[z] += 1
+        else:  # Else case: We have encountered a new word, therefore we just simply add the word into our dictionary and set its value to 1
+            wordFreqDict[z] = 1
+
+
+directory = os.listdir(negDirectory)
+directoryPath = os.path.normpath(negDirectory)
+
+for file in directory:
+
+    filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
+    content = open(filepath, 'r', encoding='latin-1')
+    content = content.read()
+    content = preprocess(content)
+    wordList = (content.lower()).split()
+
+    for z in wordList:  # Loop through each comment
+        if z in wordFreqDict:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
+            wordFreqDict[z] += 1
+        else:  # Else case: We have encountered a new word, therefore we just simply add the word into our dictionary and set its value to 1
+            wordFreqDict[z] = 1
+
+wordListTuple = sorted(wordFreqDict.items(), key=lambda x: x[1],reverse=True)  # Sort our dictionary by value and store it into a list of tuples
+wordListTuple = wordListTuple[0:50000]  # We only need the top 2000 values(frequencies) from our list
+
+topWords = list()
+
+for i in range(len(wordListTuple)):
+    temp = wordListTuple[i][0]
+    topWords.append(temp)
+
+adj = "amazing,alluring,adventurous,amusing,awesome,ambitious,beautiful,bold,brainy,breathtaking,blazing,brazen,cool,cheerful,charming,creative,clever,daring,delightful,dazzling,energetic,elegant,excellent,exceptional,emotional,exuberant,fascinating,fantastic,funny,genius,glorious,great,genuine,happy,honest,helpful,heavenly,hilarious,humorous,hearty,Incredible,inspirational,inspiring,impeccable,ingenious,impressive,innovative,insightful,intense,impartial,imaginative,phenomenal,always,also,both,hit,fun,zesty,!,?,absurd,arrogant,boring,bad,intolerant,crazy,miserly,patronizing,vulgar,crude,obnoxious,offensive,violent,cryptic,failure,fail,cringy,atrocious,awful,cheap,crummy,dreadful,lousy,noisy,poor,poorly,unacceptable,garbage,gross,horrible,inaccurate,inferior,obnoxious,synthetic,careless,cheesy,crappy,abominable,faulty,godawful,substandard,despicable,horrendous,terrible,attempt,upsetting,not,no,vile,abominable,appalling,cruel,disgusting,dreadful,eerie,grim,hideous,disastrous,disaster,horrid,horrendous,any,can't,because,better,anything,unpleasant,defective,miserable,failed,unsatisfiedact,actor,actress,adaptation,ambiance,angle,antagonist,protagonist,anti-climax,anti-hero,archetype,atmosphere,audience,audition,audio,author,backdrop,background,balance,blockbuster,box-office,cameo,camera,caption,caricature,cast,casting,censor,cgi,character,cinema,cinematic,cinerama,cliffhanger,climax,comic,commentary,compose,compostion,contrast,convention,credits,credit,critic,critique,crisis,depth,dialogue,director,directing,documentary,document,dynamic,edit,editing,ensemble,epilogue,exposition,extra,feature,film,movie,featurette,flick,focus,footage,foreshadow,foreshadowing,format,frame,framing,genre,hero,homage,image,interlude,lens,light,lighting,mark,master,metaphor,simile,methods,monitor,monologue,montage,musical,romance,narrator,narrate,narration,narrative,nostalgia,nostalgic,novel,overture,tone,pace,parody,persona,plot,premiere,prequel,preview,design,prologue,rate,rating,reaction,shot,remake,resolution,vision,satire,scene,scenery,score,screen,write,writer,writing,script,sequence,setting,sound,quality,soundtrack,effects,spoof,studio,subplot,suspense,symbolism,talent,theme,producer,production,relief,perform,performance"
+adj = lowerCaseAndSplit(adj)
+
+for word in adj:
+    if word in topWords:
+        continue
+    else:
+        topWords.append(word)
+
+features = topWords
+print(features)
+
+
+
+directory = os.listdir(posDirectory)
+directoryPath = os.path.normpath(posDirectory)
+
+df = {}
+negdf = {}  # A dictionary to store the frequency of every word from all comments
+
+for word in features:
+    negdf[word] = 0
+    df[word] = 0
+for file in directory:
+
+    filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
+    content = open(filepath, 'r', encoding='latin-1')
+    content = content.read()
+    content = preprocess(content)
+    wordList = (content.lower()).split()
+
+    wordList = set(wordList)
+    for z in wordList:  # Loop through each comment
+        if z in features:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
+            negdf[z] += 1
+            df[z] += 1
+
+directory = os.listdir(negDirectory)
+directoryPath = os.path.normpath(negDirectory)
+
+posdf = {}
+
+for word in features:
+    posdf[word] = 0
+    df[word] = 0
+for file in directory:
+
+    filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
+    content = open(filepath, 'r', encoding='latin-1')
+    content = content.read()
+    content = preprocess(content)
+    wordList = (content.lower()).split()
+
+    wordList = set(wordList)
+    for z in wordList:  # Loop through each comment
+        if z in features:  # If case: The word is already in our word frequency dictionary, so we just increment its frequency by 1
+            posdf[z] += 1
+            df[z] += 1
+
+strongFeatures = []
+
+for word in posdf:
+    if word in posdf:
+        if word in negdf:
+            posratio = (posdf[word]+1)/(negdf[word]+1)
+            negratio = (negdf[word] + 1) / (posdf[word] + 1)
+            if posratio > 1.2 or negratio > 1.2:
+                strongFeatures.append(word)
+
+print(strongFeatures)
+print(len(strongFeatures))
+
+# This was the code to write the files
+with open('strongFeatures.pk', 'wb') as f:  # Python 3: open(..., 'wb')
+    pk.dump(strongFeatures, f)
+
+with open('df.pk', 'wb') as f:  # Python 3: open(..., 'wb')
+    pk.dump(df, f) 
+'''
