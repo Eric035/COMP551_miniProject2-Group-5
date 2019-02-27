@@ -33,7 +33,14 @@ with open(newfile, 'rb') as fi:
 newfile = 'negdf.pk'
 with open(newfile, 'rb') as fi:
     negdf = pk.load(fi)
+posReviews = os.listdir(posDirectory)
+negReviews = os.listdir(negDirectory)                           # Files in the directory neg
+numPosReviewsTrainingData = len(os.listdir(posDirectory))
+numNegReviewsTrainingData = len(os.listdir(negDirectory))
+totalNumReviewsInTrainingData = (numNegReviewsTrainingData + numPosReviewsTrainingData)
 
+
+'''
 #--------------------------------------------------------------------------------------------------------------#
 # Logistic Regression Classifier
 print("We are training our Logistics Regression model with our training set...")
@@ -44,11 +51,7 @@ def adjStringToDict (adjString):            # Covert a string of adjectives into
         adjDict[adjective] = 0
     return adjDict
 
-posReviews = os.listdir(posDirectory)
-negReviews = os.listdir(negDirectory)                           # Files in the directory neg
-numPosReviewsTrainingData = len(os.listdir(posDirectory))
-numNegReviewsTrainingData = len(os.listdir(negDirectory))
-totalNumReviewsInTrainingData = (numNegReviewsTrainingData + numPosReviewsTrainingData)
+
 
 trainingDataLog = np.ones((totalNumReviewsInTrainingData, len(df)))       # A numpy matrix to store our result to fit our Logistic Regression model
                                                                     # Columns: 1) Number of positive adjectives a review has, 2) Number of negative adjectives a review has, 3) Number of swear words a review has
@@ -88,10 +91,20 @@ for file in negReviews:
 print("This is the input data for our Logistics Regression model: ")
 print(trainingDataLog)
 print("#--------------------------------------------------------------------------------------------------------------#")
-print("We now normalize our training data: ")
+print("Save our trainingDataLog into a pickle file callde trainingDataLogMatrix.")
+with open('trainingDataLogMatrix.pk', 'wb') as file:
+    pk.dump(trainingDataLog, file)
 print("")
+
 # normalizer_tranformer = Normalizer().fit(trainingDataLog)
 # X_train_normalized = normalizer_tranformer.transform(trainingDataLog)
+print("#--------------------------------------------------------------------------------------------------------------#")
+#--------------------------------------------------------------------------------------------------------------#
+'''
+
+loadFile = 'trainingDataLogMatrix.pk'
+with open(loadFile, 'rb') as inputFile:
+    trainingDataLog = pk.load(inputFile)
 
 print("#--------------------------------------------------------------------------------------------------------------#")
 trainTarget = [0] * totalNumReviewsInTrainingData
@@ -100,7 +113,6 @@ for i in range(len(posReviews)):
 print("And this is the target parameter for our Logistics Regression model: ")
 print (trainTarget)
 print("#--------------------------------------------------------------------------------------------------------------#")
-
 
 X_train, X_test, y_train, y_test = train_test_split(trainingDataLog, trainTarget, test_size=0.33)
 
@@ -114,13 +126,12 @@ print("Y test : ", len(y_test))
 model = LogisticRegression()
 model.fit(X_train, y_train)
 
-
 testSetPrediction = model.predict(X_test)
 
 
 pCounter = 0
 nCounter = 0
-for i in range(0,len(y_test)):
+for i in range(len(y_test)):
     if testSetPrediction[i] == 1 and y_test[i] == 1 or testSetPrediction[i] == 0 and y_test[i] == 0:
         pCounter += 1
     else:
@@ -142,15 +153,15 @@ for train_index, test_index in kf.split([1,2,3,4,5,6,7,8,9]):       # An example
     print(train_index, test_index)
 '''
 
-folds = StratifiedKFold(n_splits=5)
-print(folds.split(trainingDataLog))
+kf = KFold(n_splits=5)
+print(kf.split(trainingDataLog))
 
 def get_score (model, X_train, X_test, y_train, y_test):
     model.fit(X_train, y_train)
     return model.score(X_test, y_test)
 
-for train_index, test_index in folds.split(trainingDataLog):
-    print(get_score(model, ))
+for train_index, test_index in kf.split(trainingDataLog):
+    print(get_score(model, X_train, X_test, y_train, y_test))
 
 
 
