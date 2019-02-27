@@ -33,6 +33,8 @@ with open(newfile, 'rb') as fi:
 newfile = 'negdf.pk'
 with open(newfile, 'rb') as fi:
     negdf = pk.load(fi)
+
+
 posReviews = os.listdir(posDirectory)
 negReviews = os.listdir(negDirectory)                           # Files in the directory neg
 numPosReviewsTrainingData = len(os.listdir(posDirectory))
@@ -160,7 +162,10 @@ def get_score (model, X_train, X_test, y_train, y_test):
     model.fit(X_train, y_train)
     return model.score(X_test, y_test)
 
+numFold = 1         #
 for train_index, test_index in kf.split(trainingDataLog):
+    print("The number of fold: ", numFold, "train_index = ", train_index, ", test_index = ", test_index)
+    X_train, X_test, y_train, y_test =
     print(get_score(model, X_train, X_test, y_train, y_test))
 
 
