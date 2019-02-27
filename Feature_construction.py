@@ -1,8 +1,16 @@
-# COMP551 PROJECT 2: Group number: 5
+ COMP551 PROJECT 2: Group number: 5
 # Student Name: Cheuk Hang Leung (Eric), Donovan Chiazzese, Mohamed Maoui
 # Student ID: 260720788, (Put ur ID's here)
 #----------------------------------------------------------------------------------------------------------#
 #from pathlib import Path
+
+
+
+##### TO DO #####
+
+#Fix ordering of file reader
+
+
 
 
 import os, sys
@@ -80,7 +88,7 @@ for file in directory:
             wordFreqDict[z] = 1
 
 wordListTuple = sorted(wordFreqDict.items(), key=lambda x: x[1],reverse=True)  # Sort our dictionary by value and store it into a list of tuples
-wordListTuple = wordListTuple[0:20000]  # We only need the top 2000 values(frequencies) from our list
+wordListTuple = wordListTuple[0:50000]  # We only need the top 2000 values(frequencies) from our list
 
 topWords = list()
 
@@ -154,7 +162,7 @@ for word in posdf:
         if word in negdf:
             posratio = (posdf[word]+1)/(negdf[word]+1)
             negratio = (negdf[word] + 1) / (posdf[word] + 1)
-            if posratio > 1.8 or negratio > 1.8:
+            if posratio > 1.2 or negratio > 1.2:
                 strongFeatures.append(word)
 
 print(strongFeatures)
@@ -167,80 +175,4 @@ with open('strongFeatures.pk', 'wb') as f:  # Python 3: open(..., 'wb')
 with open('df.pk', 'wb') as f:  # Python 3: open(..., 'wb')
     pk.dump(df, f)
 
-'''
-
-# Files loaded
-
-newfile = 'strongFeatures.pk'
-
-with open(newfile, 'rb') as fi:
-    strongFeatures = pk.load(fi)
-
-newfile = 'posdf.pk'
-
-with open(newfile, 'rb') as fi:
-    posdf = pk.load(fi)
-    
-newfile = 'negdf.pk'
-
-with open(newfile, 'rb') as fi:
-    negdf = pk.load(fi)
-
-
-def classify(directory):
-
-    directory = os.listdir(posDirectory)
-    directoryPath = os.path.normpath(posDirectory)
-
-    numOfPos = 0
-    numOfNeg = 0
-
-    for file in directory:
-
-        filepath = os.path.join(directoryPath, os.path.normpath(file))  # Filepath = directoryPath + filename
-        content = open(filepath, 'r', encoding='latin-1')
-        content = content.read()
-        content = preprocess(content)
-        wordList = (content.lower()).split()
-        temp = set(wordList)
-        posClass = 0
-        negClass = 0
-        count = 0
-
-        wordlistwithfreq = {}
-
-    try:
-        underScoreIndex = file.index('_')  # Take the part of the string before the under score symbol, we will have the file's order
-        fileOrder = int(file[:underScoreIndex])
-
-        for word in temp:
-            wordlistwithfreq[word] = 0
-
-        for word in wordList:
-            wordlistwithfreq[word] += 1
-
-        for word in wordList:  # Loop through each comment
-            if word in strongFeatures:
-
-                posClass += wordlistwithfreq[word] * (np.log(25000) / (1 + posdf[word]))
-
-                negClass += wordlistwithfreq[word] * (np.log(25000) / (1 + negdf[word]))
-
-                if posClass > negClass:
-                    predicted_values[count] = 1
-                else:
-                    predicted_values[count] = 0
-
-        count += 1
-    for i in range(0, predicted_values.size):
-        if predicted_values[i] == 1:
-            numOfPos += 1
-        else:
-            numOfNeg += 1
-    print('number of positive reviews = ', numOfPos)
-    print('number of negative reviews = ', numOfNeg)
-
-classify(posDirectory)
-
-'''
 
