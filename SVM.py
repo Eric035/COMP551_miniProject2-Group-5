@@ -84,7 +84,9 @@ print("X test : ", len(X_test))
 print("Y test : ", len(y_test))
 
 model = svm.SVC()
+model.fit(X_train,y_train)
 
+testSetPrediction = model.predict(X_test)
 
 
 pCounter = 0
