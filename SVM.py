@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import pickle as pk
 from sklearn import svm
+from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import Normalizer
 
@@ -88,7 +90,6 @@ model.fit(X_train,y_train)
 
 testSetPrediction = model.predict(X_test)
 
-
 pCounter = 0
 nCounter = 0
 for i in range(0,len(y_test)):
@@ -102,4 +103,20 @@ negPredictedReviews = (nCounter / len(y_test)) * 100
 print("In our test data set, ", posPredictedReviews, "% are predicted right.")
 print("And ", negPredictedReviews, "% are predicted wrong.")
 
+#--------------------------------------------------------------------------------------------------------------#
+print("#--------------------------------------------------------------------------------------------------------------#")
+# K-Fold Cross Validation
+print("Running K-Fold cross validation...")
+
+'''
+kf = KFold(n_splits=5)          # Use 5 folds on the dataset
+for train_index, test_index in kf.split([1,2,3,4,5,6,7,8,9]):       # An example to show how K-fold works
+    print(train_index, test_index)
+'''
+
+folds = StratifiedKFold(n_splits=5)
+
+def get_score (model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train)
+    return model.score(X_test, y_test)
 
