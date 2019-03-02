@@ -10,9 +10,9 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import Normalizer
 
-posDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/pos"
-negDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/train/neg"
-testDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/project2Reviews/test"
+posDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/IMDB_Reviews/train/pos"
+negDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/IMDB_Reviews/train/neg"
+testDirectory = "/Users/ericleung/Desktop/Comp/Comp551/Comp551_Project2/IMDB_Reviews/test"
 
 # Files loaded
 
@@ -92,7 +92,7 @@ print("")
 print("#--------------------------------------------------------------------------------------------------------------#")
 #--------------------------------------------------------------------------------------------------------------#
 '''
-loadFile = 'trainingDataLogMatrix.pk'           # Load our trainingData Matrix 
+loadFile = 'trainingDataLogMatrix.pk'           # Load our trainingData Matrix
 with open(loadFile, 'rb') as inputFile:
     trainingDataLog = pk.load(inputFile)
 
@@ -102,7 +102,7 @@ for i in range(len(posReviews)):
     trainTarget[i] = 1
 print("This is the target parameter for our Logistics Regression model: ")
 print (trainTarget)
-print("#--------------------------------------------------------------------------------------------------------------#")
+
 model = LogisticRegression()
 #--------------------------------------------------------------------------------------------------------------#
 print("#--------------------------------------------------------------------------------------------------------------#")
@@ -118,7 +118,6 @@ scores = cross_val_score(model, trainingDataLog, trainTarget, cv=5)
 print(scores)
 
 '''
-model = LogisticRegression()
 model.fit(trainingDataLog, trainTarget)
 #--------------------------------------------------------------------------------------------------------------#
 # For our test data
