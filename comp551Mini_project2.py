@@ -1,5 +1,5 @@
 # COMP551 PROJECT 2: Group number: 5
-# Student Name: Cheuk Hang Leung (Eric), Donovan Chiazzese, Mohamed Maoui
+# Student Name: Cheuk Hang Leung (Eric), Donovan Chiazzese
 # Student ID: 260720788, (Put ur ID's here)
 #----------------------------------------------------------------------------------------------------------#
 #from pathlib import Path
